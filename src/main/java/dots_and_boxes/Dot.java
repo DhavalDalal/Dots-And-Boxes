@@ -52,8 +52,4 @@ public class Dot {
     public String toString() {
         return String.format("{%d,%d}", x, y);
     }
-
-    public<T> T map(BiFunction<Integer, Integer, T> mapper) {
-        return mapper.apply(x, y);
-    }
 }
