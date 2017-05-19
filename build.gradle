@@ -1,0 +1,84 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+
+defaultTasks 'clean', 'build'
+
+project.ext {
+    //libs
+    groovy = 'org.codehaus.groovy:groovy-all:2.4.11'
+    junit = 'junit:junit:4.11'
+    cucumberJava = 'info.cukes:cucumber-java:1.2.3'
+    cucumberGroovy = 'info.cukes:cucumber-groovy:1.2.3'
+    cucumberJunit = 'info.cukes:cucumber-junit:1.2.3'
+    resourcesDir = 'src/main/resources'
+}
+
+sourceCompatibility = '1.8'
+
+//  For gradle version below 2.1
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.github.samueltbrown:gradle-cucumber-plugin:0.7"
+    }
+}
+
+
+apply plugin: "com.github.samueltbrown.cucumber"
+
+
+//sourceSets.main.java.srcDirs = []
+//http://forums.gradle.org/gradle/topics/how_to_compile_groovy_sources_mixed_with_java_sources
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
+
+cucumber {
+    formats = ['pretty','json:build/cucumber.json','junit:build/cucumber.xml']
+    glueDirs = ['src/test/groovy/step_definitions',
+                'src/test/java/step_definitions']
+    featureDirs = ['src/test/features']
+//    tags = ['@billing', '@important']
+    monochrome = false
+    strict = false
+    dryRun = false
+}
+
+
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+//    maven {
+//        url 'http://code.google.com/p/google-maven-repository'
+//    }
+}
+
+dependencies {
+    compile(project.ext.groovy)
+    testCompile(project.ext.junit, project.ext.cucumberJava, project.ext.cucumberGroovy, project.ext.cucumberJunit)
+}
+
+eclipse {
+    classpath {
+        downloadSources=true
+    }
+}
+
+idea {
+    module {
+        // if you hate browsing Javadoc
+        downloadJavadoc = false
+
+        // and love reading sources :)
+        downloadSources = true
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.1'
+}
