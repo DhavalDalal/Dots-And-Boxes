@@ -7,8 +7,19 @@ Feature: Playing Dots and Boxes
   * game is over when there are no more lines that can be placed
   * winner is the player with most boxes
   * the board can be of any size 2x2, 5x5 works well for experts
+  * a grid of 1x2 would look like:
+    +---+---+
+    |   |   |
+    +---+---+
 
-Scenario: Player joins two dots on the grid
+  * a 2x2 grid would look like:
+    +---+---+
+    |   |   |
+    +---+---+
+    |   |   |
+    +---+---+
+
+  Scenario: Player joins two dots on the grid
   Given a grid of size 1x2:
     |box|   d1  |  d2   |present|
     | 1 | {0,0} | {0,1} | false |
