@@ -8,16 +8,24 @@ Feature: Playing Dots and Boxes
   * winner is the player with most boxes
   * the board can be of any size 2x2, 5x5 works well for experts
   * a grid of 1x2 would look like:
-    +---+---+
-    |   |   |
-    +---+---+
+
+ {1,0} {1,1} {1,2}
+     +---+---+
+     |   |   |
+     +---+---+
+ {0,0} {0,1} {0,2}
+
 
   * a 2x2 grid would look like:
-    +---+---+
-    |   |   |
-    +---+---+
-    |   |   |
-    +---+---+
+
+  {2,0} {2,1} {2,2}
+      +---+---+
+      |   |   |
+ {1,0}+---+---+{1,2}
+      |   |   |
+      +---+---+
+  {0,0} {0,1} {0,2}
+
 
   Scenario: Player joins two dots on the grid
   Given a grid of size 1x2:
