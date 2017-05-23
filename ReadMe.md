@@ -1,5 +1,5 @@
-Dots and Crosses
-================
+Dots and Boxes
+==============
 
 This game is very well described here [https://icebreakerideas.com/fun-games-to-play-at-home/#Dots_and_Boxes](https://icebreakerideas.com/fun-games-to-play-at-home/#Dots_and_Boxes)
 
