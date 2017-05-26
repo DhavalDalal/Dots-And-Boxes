@@ -3,9 +3,9 @@ package dots_and_boxes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import static java.util.stream.Collectors.*;
-
 import java.util.function.BiFunction;
+
+import static java.util.stream.Collectors.toList;
 
 public class Box {
     private List<Line> lines = new ArrayList<>();

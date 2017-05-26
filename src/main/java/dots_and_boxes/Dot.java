@@ -17,8 +17,6 @@ package dots_and_boxes;
 // so that we don't carry this @XStreamConverter annotation to
 // production!
 
-import java.util.function.BiFunction;
-
 public class Dot {
     private final int x, y;
 

@@ -7,7 +7,6 @@ import cucumber.api.java.en.When;
 import dots_and_boxes.Box;
 import dots_and_boxes.Dot;
 import dots_and_boxes.Game;
-import dots_and_boxes.Line;
 
 import java.util.Arrays;
 import java.util.HashMap;

@@ -1,13 +1,13 @@
 package dots_and_boxes;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Map.Entry.comparingByValue;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 public class Game {
@@ -71,7 +71,7 @@ public class Game {
 
         return boxes.stream()
                 .filter(nonEmptyBox)
-                .collect(Collectors.groupingBy(occupier, Collectors.counting()));
+                .collect(groupingBy(occupier, Collectors.counting()));
     }
 
     public boolean isOver() {
