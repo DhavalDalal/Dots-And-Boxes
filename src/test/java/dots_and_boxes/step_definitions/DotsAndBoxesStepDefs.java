@@ -30,7 +30,7 @@ public class DotsAndBoxesStepDefs {
 
     private void setupGame(List<LineInfo> lines) {
         lines.stream()
-            .filter(line -> line.present)
+            .filter(line -> line.lineMarked)
             .map(line -> Arrays.asList(line.d1, line.d2, line.who))
             .forEach((List details) ->
             {
@@ -109,7 +109,7 @@ class LineInfo {
     int box;
     Dot d1;
     Dot d2;
-    boolean present;
+    boolean lineMarked;
     String who;
 
     @Override
@@ -120,7 +120,7 @@ class LineInfo {
         LineInfo lineInfo = (LineInfo) o;
 
         if (box != lineInfo.box) return false;
-        if (present != lineInfo.present) return false;
+        if (lineMarked != lineInfo.lineMarked) return false;
         if (!d1.equals(lineInfo.d1)) return false;
         if (!d2.equals(lineInfo.d2)) return false;
         if (who != null ? !who.equals(lineInfo.who) : lineInfo.who != null) return false;
@@ -133,7 +133,7 @@ class LineInfo {
         int result = box;
         result = 31 * result + d1.hashCode();
         result = 31 * result + d2.hashCode();
-        result = 31 * result + (present ? 1 : 0);
+        result = 31 * result + (lineMarked ? 1 : 0);
         result = 31 * result + (who != null ? who.hashCode() : 0);
         return result;
     }
@@ -144,7 +144,7 @@ class LineInfo {
                 "box=" + box +
                 ", d1=" + d1 +
                 ", d2=" + d2 +
-                ", present=" + present +
+                ", lineMarked=" + lineMarked +
                 ", who='" + who + '\'' +
                 '}';
     }
@@ -162,7 +162,7 @@ class LineInfo {
         lineInfo.box = boxNumber;
         lineInfo.d1 = d1;
         lineInfo.d2 = d2;
-        lineInfo.present = present;
+        lineInfo.lineMarked = present;
         lineInfo.who = takenBy;
         return lineInfo;
     }

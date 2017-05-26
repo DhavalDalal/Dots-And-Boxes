@@ -68,7 +68,6 @@ public class Game {
     }
 
     public Map<String, Long> score() {
-
         return boxes.stream()
                 .filter(nonEmptyBox)
                 .collect(groupingBy(occupier, Collectors.counting()));
