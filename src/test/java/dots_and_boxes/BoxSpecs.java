@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertSame;
@@ -18,7 +19,7 @@ public class BoxSpecs {
     private final Dot d1_0 = new Dot(1,0);
     private final Box box = new Box(d0_0, d0_1, d1_1, d1_0);
     private final Box box_anti_clockwise = new Box(d0_0, d1_0, d1_1, d0_1);
-    final Dot d2_2 = new Dot(2,2);
+    private final Dot d2_2 = new Dot(2,2);
 
     @Test
     public void cornersAreWithinGivenDots() {
@@ -39,12 +40,18 @@ public class BoxSpecs {
     public void boxIsTakenByThePlayerWhoMarksTheLastRemainingFourthSide() {
         final String player = "test";
         final Box markedFirstSide = box.join(d0_0, d0_1, player);
-        assertEquals("", markedFirstSide.takenBy());
+        assertFalse(markedFirstSide.isOccupied());
         final Box markedSecondSide = markedFirstSide.join(d0_1, d1_1, player);
-        assertEquals("", markedSecondSide.takenBy());
+        assertFalse(markedSecondSide.isOccupied());
         final Box markedThirdSide = markedSecondSide.join(d1_1, d1_0, player);
-        assertEquals("", markedThirdSide.takenBy());
-        assertEquals(player, markedThirdSide.join(d1_0, d0_0, player).takenBy());
+        assertFalse(markedThirdSide.isOccupied());
+        final Box markedFourthSide = markedThirdSide.join(d1_0, d0_0, player);
+        assertTrue(markedFourthSide.isOccupied());
+        assertEquals(player, takenBy(markedFourthSide));
+    }
+
+    private String takenBy(Box box) {
+        return box.map((lines, who) -> who);
     }
 
     @Test
@@ -55,7 +62,7 @@ public class BoxSpecs {
                 .join(d1_1, d1_0, player)
                 .join(d1_0, d0_0, player);
 
-        assertEquals(player, marked.join(d1_0, d0_0, "anotherPlayer").takenBy());
+        assertEquals(player, takenBy(marked.join(d1_0, d0_0, "anotherPlayer")));
         assertSame(marked, marked.join(d1_1, d1_0, "anotherPlayer"));
     }
 

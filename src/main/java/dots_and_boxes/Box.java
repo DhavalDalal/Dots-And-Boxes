@@ -28,7 +28,7 @@ public class Box {
     }
 
     public Box join(Dot d1, Dot d2, String player) {
-        if(!takenBy.isEmpty())
+        if(isOccupied())
             return this;
 
         List<Line> newLines = lines.stream().map(line -> line.join(d1, d2)).collect(toList());
@@ -36,8 +36,8 @@ public class Box {
         return new Box(newLines, who);
     }
 
-    public String takenBy() {
-        return takenBy;
+    public boolean isOccupied() {
+        return !takenBy.isEmpty();
     }
 
     @Override
