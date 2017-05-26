@@ -1,7 +1,6 @@
 package dots_and_boxes;
 
 import java.util.List;
-import java.util.function.BiFunction;
 
 public class Line {
     private final Dot d1, d2;
