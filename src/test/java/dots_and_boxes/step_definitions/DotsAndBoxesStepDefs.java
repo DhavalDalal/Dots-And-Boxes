@@ -153,8 +153,8 @@ class LineInfo {
         return box.map((lines, takenBy) ->
             lines.stream()
                 .map(line ->
-                    line.map((d1, d2) ->
-                        toLineInfo(boxNumber, takenBy, d1, d2, line.isMarked()))));
+                    line.map((d1, d2, present) ->
+                        toLineInfo(boxNumber, takenBy, d1, d2, present))));
     }
 
     private static LineInfo toLineInfo(int boxNumber, String takenBy, Dot d1, Dot d2, boolean present) {

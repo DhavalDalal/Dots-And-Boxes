@@ -56,12 +56,7 @@ public class Line {
         return String.format("Line(%s, %s, %s)", d1, d2, present);
     }
 
-
-    public boolean isMarked() {
-        return present;
-    }
-
-    public<T> T map(BiFunction<Dot, Dot, T> mapper) {
-        return mapper.apply(d1, d2);
+    public<T> T map(TriFunction<Dot, Dot, Boolean, T> mapper) {
+        return mapper.apply(d1, d2, present);
     }
 }

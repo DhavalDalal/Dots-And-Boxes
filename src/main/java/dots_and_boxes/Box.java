@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
@@ -32,7 +33,8 @@ public class Box {
             return this;
 
         List<Line> newLines = lines.stream().map(line -> line.join(d1, d2)).collect(toList());
-        String who = newLines.stream().allMatch(line -> line.isMarked()) ? player : "";
+        final Predicate<Line> isMarked = line -> line.map((dot1, dot2, present) -> present);
+        String who = newLines.stream().allMatch(isMarked) ? player : "";
         return new Box(newLines, who);
     }
 
