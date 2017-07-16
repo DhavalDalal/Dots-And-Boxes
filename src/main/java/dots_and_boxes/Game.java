@@ -17,6 +17,9 @@ public class Game {
     private final Function<Box, String> occupier = box -> box.map((lines, takenBy) -> takenBy);
 
     public Game(int rows, int cols) {
+        if(rows < 1 || cols < 1)
+            throw new IllegalArgumentException("Require number of rows/cols more than zero");
+
         this.boxes = boxes(dots(rows, cols));
     }
 

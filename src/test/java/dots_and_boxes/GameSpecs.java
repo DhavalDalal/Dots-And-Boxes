@@ -111,4 +111,15 @@ public class GameSpecs {
         Game end = play(next6, d1_0, d2_0, "player1");
         assertEquals("{player1=1, player2=1}", end.score().toString());
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void cannotCreateGameWithoutRows() {
+        new Game(0,1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void cannotCreateGameWithoutColumns() {
+        new Game(1,0);
+    }
+
 }
