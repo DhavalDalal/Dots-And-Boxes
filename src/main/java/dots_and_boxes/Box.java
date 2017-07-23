@@ -52,45 +52,11 @@ public class Box {
         };
     }
 
-//    private Set<Dot> corners(List<List<Dot>> lines) {
-//        return lines.stream()
-//                .flatMap(line -> line.stream())
-//                .collect(Collectors.toSet());
-//    }
-
     private long numberOfBoxLinesIn(List<List<Dot>> lines, List<List<Dot>> boxLines) {
         return boxLines.stream()
                 .filter(boxLine -> lines.contains(boxLine))
                 .count();
     }
-
-//    private boolean canMakeBoxFrom(Set<Dot> dots) {
-//        if (dots.size() != 4)
-//            return false;
-//
-//        final Dot average = average(dots);
-//        boolean allCornersToCenterDistancesAreOfEqualLength = dots.stream()
-//                .map(dot -> dot.distanceTo(average))
-//                .collect(Collectors.toSet())
-//                .size() == 1;
-//
-//        boolean allSidesAreOfEqualLength = dots.stream()
-//                .flatMap(d1 -> dots.stream()
-//                        .filter(d2 -> d1.canBeJoinedHorizontallyOrVerticallyWith(d2))
-//                        .map(d2 -> d1.distanceTo(d2)))
-//                .collect(Collectors.toSet())
-//                .size() == 1;
-//
-//        return allCornersToCenterDistancesAreOfEqualLength && allSidesAreOfEqualLength;
-//    }
-//
-//    private Dot average(Set<Dot> dots) {
-//        Dot[] corners = new Dot[dots.size()];
-//        dots.toArray(corners);
-//        final Dot first = corners[0];
-//        final Dot[] rest = Arrays.copyOfRange(corners, 1, corners.length);
-//        return Dot.average(first, rest);
-//    }
 
     public boolean isWithin(Dot lowerBound, Dot upperBound) {
         return Arrays.asList(bottomLeft, topLeft, topRight, bottomRight)
