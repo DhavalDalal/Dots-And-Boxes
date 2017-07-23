@@ -26,7 +26,6 @@ public class Box {
             return false;
 
         return true;
-//        return canMakeBoxFrom(corners(possibleBoxLines));
     }
 
     public List<List<Dot>> lines() {
