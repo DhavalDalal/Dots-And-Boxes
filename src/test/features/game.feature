@@ -17,7 +17,7 @@ Feature: Playing Dots and Boxes
 
 
   * a 2x2 grid with boxes would look like:
-  
+
   {0,0} {0,1} {0,2}
       +---+---+
       | 1 | 2 |
@@ -28,91 +28,79 @@ Feature: Playing Dots and Boxes
 
 
   Scenario: Player joins two dots on the grid
-  Given a grid of size 1x2:
-    |box|   d1  |  d2   |lineMarked|
-    | 1 | {0,0} | {0,1} |   false  |
-    | 1 | {0,1} | {1,1} |   false  |
-    | 1 | {1,1} | {1,0} |   false  |
-    | 1 | {1,0} | {0,0} |   false  |
-    | 2 | {1,0} | {1,1} |   false  |
-    | 2 | {1,1} | {2,1} |   false  |
-    | 2 | {2,1} | {2,0} |   false  |
-    | 2 | {2,0} | {1,0} |   false  |
+    Given a grid of size 1x2 with players "foo, bar"
+      | box |   d1  |  d2   |lineMarked|
+      |  1  | {0,0} | {0,1} |   false  |
+      |  1  | {0,1} | {1,1} |   false  |
+      |  1  | {1,0} | {0,0} |   false  |
+      | 1-2 | {1,1} | {1,0} |   false  |
+      |  2  | {1,1} | {1,2} |   false  |
+      |  2  | {1,2} | {0,2} |   false  |
+      |  2  | {0,2} | {0,1} |   false  |
+    When a player "foo" joins dots {1,1} and {1,0}
+    Then the grid looks like:
+      | box |   d1  |  d2   |lineMarked|
+      |  1  | {0,0} | {0,1} |   false  |
+      |  1  | {0,1} | {1,1} |   false  |
+      |  1  | {1,0} | {0,0} |   false  |
+      | 1-2 | {1,1} | {1,0} |   true   |
+      |  2  | {1,1} | {1,2} |   false  |
+      |  2  | {1,2} | {0,2} |   false  |
+      |  2  | {0,2} | {0,1} |   false  |
 
-  When a player "foo" joins dots {1,1} and {1,0}
-  Then the grid looks like:
-    |box|   d1  |  d2   |lineMarked|
-    | 1 | {0,0} | {0,1} |   false  |
-    | 1 | {0,1} | {1,1} |   false  |
-    | 1 | {1,1} | {1,0} |   true   |
-    | 1 | {1,0} | {0,0} |   false  |
-    | 2 | {1,0} | {1,1} |   true   |
-    | 2 | {1,1} | {2,1} |   false  |
-    | 2 | {2,1} | {2,0} |   false  |
-    | 2 | {2,0} | {1,0} |   false  |
+  Scenario: Player completes fourth side of 1x2 box
+    Given a grid of size 1x2 with players "foo, bar"
+      | box |   d1  |  d2   |lineMarked|who|
+      |  1  | {0,0} | {0,1} |   true   |foo|
+      |  1  | {0,1} | {1,1} |   true   |bar|
+      |  1  | {1,0} | {0,0} |   true   |foo|
+      | 1-2 | {1,1} | {1,0} |   false  |bar|
+      |  2  | {1,1} | {1,2} |   false  |   |
+      |  2  | {1,2} | {0,2} |   false  |   |
+      |  2  | {0,2} | {0,1} |   false  |   |
+    And the players have scores {"foo" = 0, "bar" = 0}
+    When a player "bar" joins dots {1,1} and {1,0}
+    Then the grid looks like:
+      | box |   d1  |  d2   |lineMarked|who|
+      |  1  | {0,0} | {0,1} |   true   |foo|
+      |  1  | {0,1} | {1,1} |   true   |bar|
+      |  1  | {1,0} | {0,0} |   true   |foo|
+      | 1-2 | {1,1} | {1,0} |   true   |bar|
+      |  2  | {1,1} | {1,2} |   false  |   |
+      |  2  | {1,2} | {0,2} |   false  |   |
+      |  2  | {0,2} | {0,1} |   false  |   |
+    And the players have scores {"foo" = 0, "bar" = 1}
+    And player "bar" gets another chance
 
+  Scenario: Winner is the player with most boxes
+    Given a grid of size 1x3 with players "foo, bar"
+      | box |   d1  |  d2   |lineMarked|who|
+      |  1  | {0,0} | {0,1} |   true   |foo|
+      |  1  | {1,0} | {0,0} |   true   |bar|
+      | 1-2 | {1,1} | {1,0} |   true   |foo|
+      |  2  | {1,1} | {1,2} |   true   |bar|
+      |  1  | {0,1} | {1,1} |   true   |foo|
+      | 2-3 | {1,2} | {0,2} |   true   |foo|
+      |  2  | {0,2} | {0,1} |   true   |bar|
+      |  3  | {1,2} | {1,3} |   true   |bar|
+      |  3  | {1,3} | {0,3} |   true   |foo|
+      |  3  | {0,3} | {0,2} |   false  |   |
 
-Scenario: Player completes fourth side of 1x1 box
-  Given a grid of size 1x2:
-    |box|   d1  |  d2   |lineMarked|
-    | 1 | {0,0} | {0,1} |   true   |
-    | 1 | {0,1} | {1,1} |   true   |
-    | 1 | {1,1} | {1,0} |   false  |
-    | 1 | {1,0} | {0,0} |   true   |
-    | 2 | {1,0} | {1,1} |   false  |
-    | 2 | {1,1} | {2,1} |   false  |
-    | 2 | {2,1} | {2,0} |   false  |
-    | 2 | {2,0} | {1,0} |   false  |
-  And the players have scores {}.
+    And the players have scores {"foo" = 1, "bar" = 1}
+    When a player "bar" joins dots {0,3} and {0,2}
+    Then the grid looks like:
+      | box |   d1  |  d2   |lineMarked|who|
+      |  1  | {0,0} | {0,1} |   true   |foo|
+      |  1  | {1,0} | {0,0} |   true   |bar|
+      | 1-2 | {1,1} | {1,0} |   true   |foo|
+      |  2  | {1,1} | {1,2} |   true   |bar|
+      |  1  | {0,1} | {1,1} |   true   |foo|
+      | 2-3 | {1,2} | {0,2} |   true   |foo|
+      |  2  | {0,2} | {0,1} |   true   |bar|
+      |  3  | {1,2} | {1,3} |   true   |bar|
+      |  3  | {1,3} | {0,3} |   true   |foo|
+      |  3  | {0,3} | {0,2} |   true   |bar|
 
-  When a player "foo" joins dots {1,1} and {1,0}
-  Then the grid looks like:
-    |box|   d1  |  d2   |lineMarked|who|
-    | 1 | {0,0} | {0,1} |   true   |foo|
-    | 1 | {0,1} | {1,1} |   true   |foo|
-    | 1 | {1,1} | {1,0} |   true   |foo|
-    | 1 | {1,0} | {0,0} |   true   |foo|
-    | 2 | {1,0} | {1,1} |   true   |   |
-    | 2 | {1,1} | {2,1} |   false  |   |
-    | 2 | {2,1} | {2,0} |   false  |   |
-    | 2 | {2,0} | {1,0} |   false  |   |
-  And the players have scores {"foo":1}.
-  And player "foo" gets another chance.
-
-Scenario: Winner is the player with most boxes
-  Given a grid of size 1x3:
-    |box|   d1  |  d2   |lineMarked|who|
-    | 1 | {0,0} | {0,1} |   true   |foo|
-    | 1 | {0,1} | {1,1} |   true   |foo|
-    | 1 | {1,1} | {1,0} |   true   |foo|
-    | 1 | {1,0} | {0,0} |   true   |foo|
-    | 2 | {1,0} | {1,1} |   true   |bar|
-    | 2 | {1,1} | {2,1} |   true   |bar|
-    | 2 | {2,1} | {2,0} |   true   |bar|
-    | 2 | {2,0} | {1,0} |   true   |bar|
-    | 3 | {2,0} | {2,1} |   true   |   |
-    | 3 | {2,1} | {3,1} |   true   |   |
-    | 3 | {3,1} | {3,0} |   true   |   |
-    | 3 | {3,0} | {2,0} |   false  |   |
-
-  And the players have scores {"foo":1, "bar":1}.
-  When a player "foo" joins dots {3,0} and {2,0}
-  Then the grid looks like:
-    |box|   d1  |  d2   |lineMarked|who|
-    | 1 | {0,0} | {0,1} |   true   |foo|
-    | 1 | {0,1} | {1,1} |   true   |foo|
-    | 1 | {1,1} | {1,0} |   true   |foo|
-    | 1 | {1,0} | {0,0} |   true   |foo|
-    | 2 | {1,0} | {1,1} |   true   |bar|
-    | 2 | {1,1} | {2,1} |   true   |bar|
-    | 2 | {2,1} | {2,0} |   true   |bar|
-    | 2 | {2,0} | {1,0} |   true   |bar|
-    | 3 | {2,0} | {2,1} |   true   |foo|
-    | 3 | {2,1} | {3,1} |   true   |foo|
-    | 3 | {3,1} | {3,0} |   true   |foo|
-    | 3 | {3,0} | {2,0} |   true   |foo|
-
-  And the game is over.
-  And the players have scores {"foo":2, "bar":1}.
-  And the winner is "foo".
-
+    And the players have scores {"foo" = 1, "bar" = 2}
+    And the game is over
+    And the winner is "bar"

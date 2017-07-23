@@ -6,7 +6,9 @@ import dots_and_boxes.Dot;
 public class DotConverter extends Transformer<Dot> {
     @Override
     public Dot transform(String value) {
-        String [] coordinates = value.replace("{","").replace("}", "").split(",");
-        return new Dot(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+        final String[] coordinates = value.replace("{", "").replace("}", "").split(",");
+        int x = Integer.parseInt(coordinates[0]);
+        int y = Integer.parseInt(coordinates[1]);
+        return new Dot(x, y);
     }
 }

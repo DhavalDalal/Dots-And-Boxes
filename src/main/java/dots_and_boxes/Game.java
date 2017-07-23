@@ -1,102 +1,176 @@
 package dots_and_boxes;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Map.Entry.comparingByValue;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-
 public class Game {
-    private final List<Box> boxes;
+    private final Dot gridLowerBound;
+    private final Dot gridUpperBound;
+    private final List<List<Dot>> markedLines = new ArrayList<>();
+    private final Map<String, Set<Box>> scores;
+    private final List<String> players;
+    private final long possibleBoxesCount;
+    private int nextPlayer;
 
-    private final Predicate<Box> nonEmptyBox = box -> box.isOccupied();
-    private final Function<Box, String> occupier = box -> box.map((lines, takenBy) -> takenBy);
+    public Game(int rows, int cols, List<String> players) {
 
-    public Game(int rows, int cols) {
-        if(rows < 1 || cols < 1)
-            throw new IllegalArgumentException("Require number of rows/cols more than zero");
+        if (rows < 1)
+            throw new IllegalArgumentException("Require at least 1 row");
 
-        this.boxes = boxes(dots(rows, cols));
+        if (cols < 1)
+            throw new IllegalArgumentException("Require at least 1 column");
+
+        if (null == players || players.isEmpty() || players.size() < 2)
+            throw new IllegalArgumentException("Please specify players");
+
+        this.players = players;
+        this.gridLowerBound = new Dot(0, 0);
+        this.gridUpperBound = new Dot(rows, cols);
+        this.nextPlayer = 0;
+        this.possibleBoxesCount = possibleBoxes(rows, cols).size();
+        this.scores = initializeScoresToZero(players);
     }
 
-    private Game(List<Box> boxes) {
-        this.boxes = boxes;
+    private Map<String, Set<Box>> initializeScoresToZero(List<String> players) {
+        return players.stream()
+                .collect(Collectors.toMap(Function.<String>identity(), name -> new HashSet<>()));
     }
 
-    private List<Dot> dots(int rows, int cols) {
-        return Stream.iterate(0, i -> i + 1).limit(cols + 1)
-                .flatMap(x -> Stream.iterate(0, j -> j + 1).limit(rows + 1)
-                        .map(y -> new Dot(x, y))).collect(toList());
+    private Set<Box> possibleBoxes(int rows, int cols) {
+        return Stream.iterate(0, i -> i + 1)
+                .limit(rows + 1)
+                .flatMap(x ->
+                        Stream.iterate(0, j -> j + 1)
+                                .limit(cols + 1)
+                                .map(y -> boxesFor(new Dot(x, y))))
+                .flatMap(boxes -> boxes.stream())
+                .collect(Collectors.toSet());
     }
 
-    private List<Box> boxes(List<Dot> dots) {
-        return dots.stream().map(dot -> box(dot))
-                .filter(box -> box.isContainedIn(dots))
-                .collect(toList());
+    public boolean join(Dot d1, Dot d2, String playerName) {
+        final String nextPlayerName = nextPlayerName();
+
+        if(!nextPlayerName.equals(playerName))
+            throw new IllegalArgumentException(String.format("It's %s's turn!", nextPlayerName));
+
+        if (notWithinGrid(d1, d2))
+            return false;
+
+        final List<Dot> line = Arrays.asList(d1, d2);
+        final List<Dot> reverseLine = Arrays.asList(d2, d1);
+
+        if (markedLines.contains(line) || markedLines.contains(reverseLine))
+            return false;
+
+        if (!d1.canBeJoinedHorizontallyOrVerticallyWith(d2))
+            return false;
+
+        int currentPlayer = nextPlayer;
+        markedLines.add(line);
+        nextPlayer = getNextPlayer(currentPlayer);
+
+        makeBoxesFor(d1, d2)
+                .forEach(completedBox -> {
+                    add(completedBox, playerName);
+                    currentPlayerPlaysNext(currentPlayer);
+                });
+        return true;
     }
 
-    private Box box(Dot dot) {
-        Dot bottomLeft = dot;
-        Dot topLeft = dot.translate(0, 1);
-        Dot topRight = dot.translate(1, 1);
-        Dot bottomRight = dot.translate(1, 0);
-        return new Box(bottomLeft, topLeft, topRight, bottomRight);
+    private Set<Box> completedBoxes() {
+        return scores.values().stream()
+                    .flatMap(boxes -> boxes.stream())
+                    .collect(Collectors.toSet());
     }
 
-    public List<?> join(Dot d1, Dot d2, String player) {
-        List<Box> newBoxes = this.boxes.stream()
-                .map(box -> box.join(d1, d2, player))
-                .collect(toList());
-
-        String who = filled(newBoxes) > filled(boxes) ? player : "";
-        Game nextGame = new Game(newBoxes);
-        return Arrays.asList(who, nextGame);
+    private void currentPlayerPlaysNext(int player) {
+        nextPlayer = player;
     }
 
-    private long filled(List<Box> boxes) {
-        return boxes.stream().filter(nonEmptyBox).count();
+    private int getNextPlayer(int idx) {
+        final int nextIdx = idx + 1;
+        return nextIdx < players.size() ? nextIdx : 0;
     }
 
-    @Override
-    public String toString() {
-        return String.format("Game(%s)", boxes);
+    public String nextPlayerName() {
+        return players.get(nextPlayer);
     }
 
-    public<T> T map(Function<List<Box>, T> mapper) {
-        return mapper.apply(Collections.unmodifiableList(boxes));
+    private boolean notWithinGrid(Dot d1, Dot d2) {
+        return !d1.isWithin(gridLowerBound, gridUpperBound)
+                || !d2.isWithin(gridLowerBound, gridUpperBound);
     }
 
-    public Map<String, Long> score() {
+    private Stream<Box> makeBoxesFor(Dot d1, Dot d2) {
+        final Set<Box> boxes = new HashSet<>();
+        boxes.addAll(boxesFor(d1));
+        boxes.addAll(boxesFor(d2));
         return boxes.stream()
-                .filter(nonEmptyBox)
-                .collect(groupingBy(occupier, Collectors.counting()));
+                .filter(box -> box.canBeCreatedUsing(markedLines))
+                .filter(box -> !completedBoxes().contains(box));
+    }
+
+    private Set<Box> boxesFor(Dot center) {
+//        {x-1,y-1},{x-1,y},{x-1,y+1}
+//         LeftTop,   Top,   RightTop
+//          {x,y-1}, {x,y} ,{x,y+1}
+//           Left,  Center,  Right
+//        {x+1,y-1},{x+1,y},{x+1,y+1}
+//        LeftBottom, Bottom, RightBottom
+
+        final Dot right = center.translate(0, 1);
+        final Dot left = center.translate(0, -1);
+        final Dot top = center.translate(-1, 0);
+        final Dot bottom = center.translate(1, 0);
+        final Dot leftTop = center.translate(-1, -1);
+        final Dot leftBottom = center.translate(1, -1);
+        final Dot rightTop = center.translate(-1, 1);
+        final Dot rightBottom = center.translate(1, 1);
+
+        return Arrays.asList(new Box(left, leftTop, top, center), new Box(center, top, rightTop, right),
+                new Box(leftBottom, left, center, bottom), new Box(bottom, center, right, rightBottom))
+                .stream()
+                .filter(box -> box.isWithin(gridLowerBound, gridUpperBound))
+                .collect(Collectors.toSet());
+    }
+
+    private void add(Box box, String player) {
+        if (scores.containsKey(player))
+            scores.get(player).add(box);
+    }
+
+    public void forEachConnectedLine(BiConsumer<Dot, Dot> fn) {
+        markedLines.stream()
+                .forEach(line -> {
+                    final Dot d1 = line.get(0);
+                    final Dot d2 = line.get(1);
+                    fn.accept(d1, d2);
+                });
+    }
+
+    public Map<String, Integer> scores() {
+        return scores.keySet().stream()
+                .collect(Collectors.toMap(Function.identity(), player -> scores.get(player).size()));
     }
 
     public boolean isOver() {
-        return boxes.stream().filter(nonEmptyBox).count() == boxes.size();
+        return possibleBoxesCount == completedBoxes().size();
     }
 
     public String winner() {
-        final Comparator<Map.Entry<String, Long>> ascending = comparingByValue();
-        final List<Map.Entry<String, Long>> scores = score().entrySet()
-                .stream()
-                .sorted(ascending.reversed())
-                .limit(2)
-                .collect(Collectors.toList());
+        if(!isOver())
+            return "Game is not complete yet!";
 
-        if(scores.size() == 1)
-            return scores.get(0).getKey();
+        if(hasCompletedInADraw())
+            return "Game has Drawn!";
 
-        final Map.Entry<String, Long> first = scores.get(0);
-        final Map.Entry<String, Long> second = scores.get(1);
+        return nextPlayerName();
+    }
 
-        if(first.getValue() == second.getValue())
-            return "Game has drawn!";
-
-        return first.getKey();
+    private boolean hasCompletedInADraw() {
+        return scores().values().stream().collect(Collectors.toSet()).size() == 1;
     }
 }

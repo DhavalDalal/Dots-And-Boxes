@@ -1,45 +1,101 @@
 package dots_and_boxes;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
-
-import static java.util.stream.Collectors.toList;
 
 public class Box {
-    private List<Line> lines = new ArrayList<>();
-    private String takenBy = "";
+
+    private final Dot bottomLeft;
+    private final Dot topLeft;
+    private final Dot topRight;
+    private final Dot bottomRight;
 
     public Box(Dot bottomLeft, Dot topLeft, Dot topRight, Dot bottomRight) {
-        lines.add(new Line(bottomLeft, topLeft, false));
-        lines.add(new Line(topLeft, topRight, false));
-        lines.add(new Line(topRight, bottomRight, false));
-        lines.add(new Line(bottomRight, bottomLeft, false));
+        this.bottomLeft = bottomLeft;
+        this.topLeft = topLeft;
+        this.topRight = topRight;
+        this.bottomRight = bottomRight;
     }
 
-    private Box(List<Line> newLines, String player) {
-        this.lines = newLines;
-        this.takenBy = player;
+    public boolean canBeCreatedUsing(List<List<Dot>> lines) {
+        List<List<Dot>> possibleBoxLines = lines();
+        possibleBoxLines.addAll(reverseLines());
+
+        if (numberOfBoxLinesIn(lines, possibleBoxLines) != 4)
+            return false;
+
+        return true;
+//        return canMakeBoxFrom(corners(possibleBoxLines));
     }
 
-    public boolean isContainedIn(List<Dot> dots) {
-        return lines.stream().allMatch(line -> line.hasEndPointsIn(dots));
+    public List<List<Dot>> lines() {
+        return new ArrayList<List<Dot>>() {
+            {
+                add(Arrays.asList(bottomLeft, topLeft));
+                add(Arrays.asList(topLeft, topRight));
+                add(Arrays.asList(topRight, bottomRight));
+                add(Arrays.asList(bottomRight, bottomLeft));
+            }
+        };
     }
 
-    public Box join(Dot d1, Dot d2, String player) {
-        if(isOccupied())
-            return this;
+    private List<List<Dot>> reverseLines() {
+        return new ArrayList<List<Dot>>() {
+            {
+                add(Arrays.asList(topLeft, bottomLeft));
+                add(Arrays.asList(topRight, topLeft));
+                add(Arrays.asList(bottomRight, topRight));
+                add(Arrays.asList(bottomLeft, bottomRight));
 
-        List<Line> newLines = lines.stream().map(line -> line.join(d1, d2)).collect(toList());
-        final Predicate<Line> isMarked = line -> line.map((dot1, dot2, present) -> present);
-        String who = newLines.stream().allMatch(isMarked) ? player : "";
-        return new Box(newLines, who);
+            }
+        };
     }
 
-    public boolean isOccupied() {
-        return !takenBy.isEmpty();
+//    private Set<Dot> corners(List<List<Dot>> lines) {
+//        return lines.stream()
+//                .flatMap(line -> line.stream())
+//                .collect(Collectors.toSet());
+//    }
+
+    private long numberOfBoxLinesIn(List<List<Dot>> lines, List<List<Dot>> boxLines) {
+        return boxLines.stream()
+                .filter(boxLine -> lines.contains(boxLine))
+                .count();
+    }
+
+//    private boolean canMakeBoxFrom(Set<Dot> dots) {
+//        if (dots.size() != 4)
+//            return false;
+//
+//        final Dot average = average(dots);
+//        boolean allCornersToCenterDistancesAreOfEqualLength = dots.stream()
+//                .map(dot -> dot.distanceTo(average))
+//                .collect(Collectors.toSet())
+//                .size() == 1;
+//
+//        boolean allSidesAreOfEqualLength = dots.stream()
+//                .flatMap(d1 -> dots.stream()
+//                        .filter(d2 -> d1.canBeJoinedHorizontallyOrVerticallyWith(d2))
+//                        .map(d2 -> d1.distanceTo(d2)))
+//                .collect(Collectors.toSet())
+//                .size() == 1;
+//
+//        return allCornersToCenterDistancesAreOfEqualLength && allSidesAreOfEqualLength;
+//    }
+//
+//    private Dot average(Set<Dot> dots) {
+//        Dot[] corners = new Dot[dots.size()];
+//        dots.toArray(corners);
+//        final Dot first = corners[0];
+//        final Dot[] rest = Arrays.copyOfRange(corners, 1, corners.length);
+//        return Dot.average(first, rest);
+//    }
+
+    public boolean isWithin(Dot lowerBound, Dot upperBound) {
+        return Arrays.asList(bottomLeft, topLeft, topRight, bottomRight)
+                .stream()
+                .allMatch(dot -> dot.isWithin(lowerBound, upperBound));
     }
 
     @Override
@@ -49,26 +105,28 @@ public class Box {
 
         Box box = (Box) o;
 
-        if (lines != null ? !lines.equals(box.lines) : box.lines != null) return false;
-        if (takenBy != null ? !takenBy.equals(box.takenBy) : box.takenBy != null) return false;
-
-        return true;
+        return bottomLeft.equals(box.bottomLeft)
+                && bottomRight.equals(box.bottomRight)
+                && topLeft.equals(box.topLeft)
+                && topRight.equals(box.topRight);
     }
 
     @Override
     public int hashCode() {
-        int result = lines != null ? lines.hashCode() : 0;
-        result = 31 * result + (takenBy != null ? takenBy.hashCode() : 0);
+        int result = bottomLeft.hashCode();
+        result = 31 * result + topLeft.hashCode();
+        result = 31 * result + topRight.hashCode();
+        result = 31 * result + bottomRight.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return String.format("Box(%s, %s)", lines, takenBy);
-    }
-
-
-    public<T> T map(BiFunction<List<Line>, String, T> mapper) {
-        return mapper.apply(Collections.unmodifiableList(lines), takenBy);
+        return "Box{" +
+                "bottomLeft=" + bottomLeft +
+                ", topLeft=" + topLeft +
+                ", topRight=" + topRight +
+                ", bottomRight=" + bottomRight +
+                '}';
     }
 }

@@ -1,125 +1,232 @@
 package dots_and_boxes;
 
+import dots_and_boxes.Dot;
+import dots_and_boxes.Game;
 import org.junit.Test;
 
-import java.util.List;
+import java.util.*;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class GameSpecs {
 
-    private final Dot d0_0 = new Dot(0,0);
-    private final Dot d0_1 = new Dot(0,1);
-    private final Dot d1_1 = new Dot(1,1);
-    private final Dot d1_0 = new Dot(1,0);
-    private final Dot d2_0 = new Dot(2,0);
-    private Game start = new Game(1,1);
+    private final Dot d00 = new Dot(0, 0);
+    private final Dot d01 = new Dot(0, 1);
+    private final Dot d10 = new Dot(1, 0);
+    private final Dot d11 = new Dot(1, 1);
+    private final Dot d02 = new Dot(0, 2);
+    private final Dot d12 = new Dot(1, 2);
+    private final String player1 = "player1";
+    private final String player2 = "player2";
+    private final List<String> players = Arrays.asList(player1, player2);
+    private Game game = new Game(1, 1, players);
+    private final Map<String, Integer> zeroScores = new HashMap<String, Integer>() {{
+        put(player1, 0);
+        put(player2, 0);
+    }};
 
     @Test
-    public void playerCompletingFourthSideGetsAnotherChance() {
-        Game next1 = play_and_assertNextPlayer(start, d0_0, d0_1, "player1", "");
-        Game next2 = play_and_assertNextPlayer(next1, d0_1, d1_1, "player2", "");
-        Game next3 = play_and_assertNextPlayer(next2, d1_1, d1_0, "player1", "");
-        List<?> nextState = next3.join(d1_0, d0_0, "player2");
-        assertEquals("player2", nextPlayer(nextState));
-    }
-
-    private Game play_and_assertNextPlayer(Game game, Dot d1, Dot d2, String player, String nextPlayer) {
-        List<?> nextState = game.join(d1, d2, player);
-        Game next = nextGame(nextState);
-        assertEquals(nextPlayer, nextState.get(0));
-        return next;
-    }
-    private Game play(Game game, Dot d1, Dot d2, String player) {
-        List<?> nextState = game.join(d1, d2, player);
-        return nextGame(nextState);
-    }
-
-    private Game nextGame(List<?> nextState) {
-        return (Game) nextState.get(1);
-    }
-
-    private String nextPlayer(List<?> nextState) {
-        return (String) nextState.get(0);
+    public void joinsDotsUsingHorizontalLine() throws Exception {
+        assertTrue(game.join(d00, d01, player1));
     }
 
     @Test
-    public void gameIsCompleteWhenAllTheBoxesAreFilled() {
-        assertFalse(start.isOver());
-
-        Game next1 = play(start, d0_0, d0_1, "player1");
-        assertFalse(next1.isOver());
-
-        Game next2 = play(next1, d0_1, d1_1, "player2");
-        assertFalse(next2.isOver());
-
-        Game next3 = play(next2, d1_1, d1_0, "player1");
-        assertFalse(next3.isOver());
-
-        Game end = play(next3, d1_0, d0_0, "player2");
-        assertTrue(end.isOver());
+    public void joinsDotsUsingVerticalLine() throws Exception {
+        assertTrue(game.join(d00, d10, player1));
     }
 
     @Test
-    public void thereIsAWinner() {
-        assertFalse(start.isOver());
-
-        Game next1 = play(start, d0_0, d0_1, "player1");
-        assertFalse(next1.isOver());
-
-        Game next2 = play(next1, d0_1, d1_1, "player2");
-        assertFalse(next2.isOver());
-
-        Game next3 = play(next2, d1_1, d1_0, "player1");
-        assertFalse(next3.isOver());
-
-        Game end = play(next3, d1_0, d0_0, "player2");
-        assertEquals("player2", end.winner());
+    public void cannotJoinDotsUsingBackwardDiagonalLine() throws Exception {
+        assertFalse(game.join(d00, d11, player1));
     }
 
     @Test
-    public void thereAreNoWinners() {
-        Game game1x2 = new Game(1,2);
-        Game next1 = play(game1x2, d0_0, d0_1, "player1");
-        Game next2 = play(next1, d0_1, d1_1, "player2");
-        Game next3 = play(next2, d1_1, d1_0, "player1");
-        Game next4 = play(next3, d1_0, d0_0, "player2");
-
-        Dot d2_1 = new Dot(2,1);
-        Game next5 = play(next4, d1_1, d2_1, "player1");
-        Game next6 = play(next5, d2_1, d2_0, "player2");
-        Game end = play(next6, d1_0, d2_0, "player1");
-        assertEquals("Game has drawn!", end.winner());
+    public void cannotJoinDotsUsingForwardDiagonalLine() throws Exception {
+        assertFalse(game.join(d01, d10, player1));
     }
 
     @Test
-    public void keepsScore() {
-        Game game1x2 = new Game(1,2);
-        assertEquals("{}", game1x2.score().toString());
+    public void cannotJoinAlreadyJoinedLine() throws Exception {
+        assertTrue(game.join(d00, d01, player1));
+        assertFalse(game.join(d01, d00, player2));
+    }
 
-        Game next1 = play(game1x2, d0_0, d0_1, "player1");
-        Game next2 = play(next1, d0_1, d1_1, "player2");
-        Game next3 = play(next2, d1_1, d1_0, "player1");
-        Game next4 = play(next3, d1_0, d0_0, "player2");
-        assertEquals("{player2=1}", next4.score().toString());
+    @Test
+    public void cannotJoinDotsNotPresentInTheGame() throws Exception {
+        assertFalse(game.join(d00, d02, player1));
+    }
 
-        Dot d2_1 = new Dot(2,1);
-        Game next5 = play(next4, d1_1, d2_1, "player1");
-        Game next6 = play(next5, d2_1, d2_0, "player2");
-        Game end = play(next6, d1_0, d2_0, "player1");
-        assertEquals("{player1=1, player2=1}", end.score().toString());
+    @Test
+    public void beginsWithZeroScores() throws Exception {
+        assertEquals(zeroScores, game.scores());
+    }
+
+    @Test
+    public void zeroScoresWhenNoBoxesAreComplete() throws Exception {
+        game.join(d00, d01, player1);
+        assertEquals(zeroScores, game.scores());
+        game.join(d00, d10, player2);
+        assertEquals(zeroScores, game.scores());
+        game.join(d10, d11, player1);
+        assertEquals(zeroScores, game.scores());
+    }
+
+    @Test
+    public void playerScoresAPointWhenTheFourthLineOfTheBoxIsMarked() throws Exception {
+        player2CompletesABox(game, player1, player2);
+        final HashMap<String, Integer> expected = new HashMap<String, Integer>() {{
+            put(player1, 0);
+            put(player2, 1);
+        }};
+        assertEquals(expected, game.scores());
+    }
+
+    private void player2CompletesABox(Game game, String player1, String player2) {
+        game.join(d00, d01, player1);
+        game.join(d00, d10, player2);
+        game.join(d10, d11, player1);
+        game.join(d11, d01, player2);
+    }
+
+    @Test
+    public void eachPlayerScoresEqualPoints() throws Exception {
+        Game game = new Game(1, 2, players);
+        game.join(d00, d01, player1);
+        game.join(d00, d10, player2);
+        game.join(d10, d11, player1);
+        game.join(d11, d12, player2);
+        game.join(d11, d01, player1);
+        final HashMap<String, Integer> expected = new HashMap<String, Integer>() {{
+            put(player1, 1);
+            put(player2, 0);
+        }};
+        assertEquals(expected, game.scores());
+
+        game.join(d12, d02, player1);
+        game.join(d01, d02, player2);
+
+        expected.put(player2, 1);
+        assertEquals(expected, game.scores());
+    }
+
+    @Test
+    public void aPlayerScoresAllPoints() throws Exception {
+        Game game = new Game(1, 2, players);
+        player2CompletesABox(game, player1, player2);
+        final HashMap<String, Integer> expected = new HashMap<String, Integer>() {{
+            put(player1, 0);
+            put(player2, 1);
+        }};
+        assertEquals(expected, game.scores());
+
+        player2CompletesAnotherBox(game);
+        expected.put(player2, 2);
+        assertEquals(expected, game.scores());
+    }
+
+    private void player2CompletesAnotherBox(Game game) {
+        game.join(d11, d12, player2);
+        game.join(d02, d12, player1);
+        game.join(d01, d02, player2);
+    }
+
+    @Test
+    public void firstPlayerPlaysFirst() throws Exception {
+        game.join(d00, d01, player1);
+    }
+
+    @Test
+    public void secondPlayerPlaysSecond() throws Exception {
+        game.join(d00, d01, player1);
+        game.join(d00, d01, player2);
+    }
+
+    @Test
+    public void shoutsWhenAnyPlayerPlaysOutOfTurn() throws Exception {
+        try {
+            game.join(d00, d01, player2);
+        } catch (IllegalArgumentException e) {
+            assertEquals("It's player1's turn!", e.getMessage());
+        }
+    }
+
+    @Test
+    public void playerCompletingABoxGetsSecondChance() throws Exception {
+        Game game = new Game(1, 2, players);
+        player2CompletesABox(game, player1, player2);
+        assertEquals(player2, game.nextPlayerName());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void cannotCreateGameWithoutRows() {
-        new Game(0,1);
+    public void shoutsWhenAPlayerWhoCompletedABoxDoesNotPlayAgain() throws Exception {
+        Game game = new Game(1, 2, players);
+        player2CompletesABox(game, player1, player2);
+        game.join(d01, d02, player1);
+    }
+
+    @Test
+    public void isOver() throws Exception {
+        Game game = new Game(1, 2, players);
+        player2CompletesABox(game, player1, player2);
+        assertFalse(game.isOver());
+
+        Dot d12 = new Dot(1, 2);
+        game.join(d11, d12, player2);
+        game.join(d02, d12, player1);
+        game.join(d01, d02, player2);
+        assertTrue(game.isOver());
+    }
+
+    @Test
+    public void hasWinnerWhenGameIsComplete() throws Exception {
+        Game game = new Game(1, 2, players);
+        player2CompletesABox(game, player1, player2);
+        player2CompletesAnotherBox(game);
+        assertEquals(player2, game.winner());
+    }
+
+    @Test
+    public void hasNoWinnerWhenGameIsInProgress() throws Exception {
+        Game game = new Game(1, 2, players);
+        player2CompletesABox(game, player1, player2);
+        assertEquals("Game is not complete yet!", game.winner());
+    }
+
+    @Test
+    public void hasNoWinnerWhenGameHasCompletedWithEqualScores() throws Exception {
+        Game game = new Game(1, 2, players);
+        game.join(d00, d01, player1);
+        game.join(d00, d10, player2);
+        game.join(d10, d11, player1);
+        game.join(d11, d12, player2);
+        game.join(d11, d01, player1);
+        game.join(d12, d02, player1);
+        game.join(d01, d02, player2);
+        assertEquals("Game has Drawn!", game.winner());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void cannotCreateGameWithoutColumns() {
-        new Game(1,0);
+    public void shoutsWhenMinimumRowsAreNotSatisfied() throws Exception {
+        new Game(0, 1, players);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shoutsWhenMinimumColumnsAreNotSatisfied() throws Exception {
+        new Game(1, 0, players);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shoutsWhenPlayersAreNotSpecified() throws Exception {
+        new Game(1, 1, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shoutsWhenPlayersAreEmpty() throws Exception {
+        new Game(1, 1, Collections.emptyList());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shoutsWhenPlayersAreNotAvailable() throws Exception {
+        new Game(1, 1, Arrays.asList(player1));
+    }
 }
